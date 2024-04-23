@@ -90,19 +90,19 @@ class CellItemWidgetState extends State<CellItemWidget> {
                     setState(() {
                       print(
                           "lockothercells $lockOtherCells, isplayed $isPlayed, widget.playable ${widget.playable} ");
-                      if (!lockOtherCells) {
-                        if (widget.playable && !isPlayed) {
-                          lockOtherCells = true;
-                          if (globalState == GameState.xTurn) {
+                      if (!lockOtherCells.value) {
+                        if (widget.playable && !isPlayed.value) {
+                          lockOtherCells.value = true;
+                          if (globalState.value == GameState.xTurn) {
                             widget.value = 'X';
                             widget.playable = false;
                             widget.color = widget.xColor;
-                            isPlayed = true;
-                          } else if (globalState == GameState.oTurn) {
+                            isPlayed.value = true;
+                          } else if (globalState.value == GameState.oTurn) {
                             widget.value = 'O';
                             widget.playable = false;
                             widget.color = widget.oColor;
-                            isPlayed = true;
+                            isPlayed.value = true;
                           }
                         }
                         // update cellItemWidgetList
@@ -118,14 +118,14 @@ class CellItemWidgetState extends State<CellItemWidget> {
                         if (cellItemWidgetList[winnerList[i][0]].value == 'X' &&
                             cellItemWidgetList[winnerList[i][1]].value == 'X' &&
                             cellItemWidgetList[winnerList[i][2]].value == 'X') {
-                          globalState = GameState.xWin;
+                          globalState.value = GameState.xWin;
                           print("X wins setting global state");
                           return;
                         } else if (cellItemWidgetList[winnerList[i][0]].value ==
                                 'O' &&
                             cellItemWidgetList[winnerList[i][1]].value == 'O' &&
                             cellItemWidgetList[winnerList[i][2]].value == 'O') {
-                          globalState = GameState.oWin;
+                          globalState.value = GameState.oWin;
                           print(" O wins setting global state");
                           return;
                         }
@@ -140,7 +140,7 @@ class CellItemWidgetState extends State<CellItemWidget> {
                         }
                       }
                       if (!emptyCell) {
-                        globalState = GameState.draw;
+                        globalState.value = GameState.draw;
                         print("Setting global state to draw");
                       }
                     }),

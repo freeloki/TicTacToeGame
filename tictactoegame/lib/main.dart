@@ -1,22 +1,24 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:tictactoegame/tictactoe.dart';
+import 'package:get/get.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(const GetMaterialApp(home: MainApp()));
 }
 
-var globalState = GameState.init;
+var globalState = GameState.init.obs;
 
-var lockOtherCells = false;
+var lockOtherCells = false.obs;
 
-var isPlayed = false;
+var isPlayed = false.obs;
 
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
 
   @override
   State<StatefulWidget> createState() {
-    // TODO: implement createState
     return _MainAppState();
   }
 }
@@ -30,17 +32,19 @@ enum GameState {
   init,
 }
 
-GameState gameState = GameState.init;
+var gameState = GameState.init.obs;
 
 void clickedCb(id) {
   print('Cell ${id} clicked');
 }
 
 var ticTacToeGameWidget = TicTacToeGameWidget();
+var btnText = "Start".obs;
+var infoText = "Please click the start button to start the game".obs;
+
+var clearState = false.obs;
 
 class _MainAppState extends State<MainApp> {
-  String infoText = "Please click the start button to start the game";
-  String btnText = "Start";
   String xTurn = "X's turn";
   String oTurn = "O's turn";
 
@@ -62,41 +66,46 @@ class _MainAppState extends State<MainApp> {
                 print('Start button clicked $gameState');
 
                 setState(() {
-                  if (globalState == GameState.xWin) {
-                    infoText = "X wins";
-                    gameState = GameState.xWin;
-                    btnText = "Game Over";
+                  if (globalState.value == GameState.xWin) {
+                    infoText.value = "X wins";
+                    gameState.value = GameState.xWin;
+                    btnText.value = "Game Over";
+                    clearState.value = true;
                     return;
-                  } else if (globalState == GameState.oWin) {
-                    infoText = "O wins";
-                    gameState = GameState.oWin;
-                    btnText = "Game Over";
-                  } else if (globalState == GameState.draw) {
-                    infoText = "Draw";
-                    gameState = GameState.draw;
-                    btnText = "Game Over";
-                  } else if (globalState == GameState.init) {
-                    infoText =
+                  } else if (globalState.value == GameState.oWin) {
+                    infoText.value = "O wins";
+                    gameState.value = GameState.oWin;
+                    btnText.value = "Game Over";
+                    clearState.value = true;
+                    return;
+                  } else if (globalState.value == GameState.draw) {
+                    infoText.value = "Draw";
+                    gameState.value = GameState.draw;
+                    btnText.value = "Game Over";
+                    clearState.value = true;
+                    return;
+                  } else if (globalState.value == GameState.init) {
+                    infoText.value =
                         "Please click the start button to start the game";
                   }
-                  if (GameState.init == gameState) {
-                    gameState = GameState.xTurn;
-                    infoText = xTurn;
-                    btnText = "Accept Move";
-                    lockOtherCells = false;
+                  if (GameState.init == gameState.value) {
+                    gameState.value = GameState.xTurn;
+                    infoText.value = xTurn;
+                    btnText.value = "Confirm Move";
+                    lockOtherCells.value = false;
                   }
-                  if (isPlayed) {
-                    if (GameState.xTurn == gameState) {
-                      gameState = GameState.oTurn;
-                      infoText = oTurn;
-                      lockOtherCells = false;
-                    } else if (GameState.oTurn == gameState) {
-                      gameState = GameState.xTurn;
-                      infoText = xTurn;
-                      lockOtherCells = false;
+                  if (isPlayed.value) {
+                    if (GameState.xTurn == gameState.value) {
+                      gameState.value = GameState.oTurn;
+                      infoText.value = oTurn;
+                      lockOtherCells.value = false;
+                    } else if (GameState.oTurn == gameState.value) {
+                      gameState.value = GameState.xTurn;
+                      infoText.value = xTurn;
+                      lockOtherCells.value = false;
                     }
 
-                    isPlayed = false;
+                    isPlayed.value = false;
                   }
                   globalState = gameState;
                 });
@@ -104,20 +113,54 @@ class _MainAppState extends State<MainApp> {
               style: ButtonStyle(
                   backgroundColor:
                       MaterialStateProperty.all(Colors.limeAccent)),
-              child: Text(
-                btnText,
-                style: const TextStyle(fontSize: 24, color: Colors.black),
+              child: Obx(
+                () => Text(
+                  btnText.string,
+                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                ),
               ),
             ),
-            const Padding(padding: EdgeInsets.all(10.0)),
-            Text(
-              infoText,
-              style: const TextStyle(fontSize: 24, color: Colors.blueAccent),
-              textAlign: TextAlign.center,
+            const Padding(padding: EdgeInsets.all(2.0)),
+            Obx(
+              () => Visibility(
+                visible: clearState.value,
+                child: TextButton(
+                  style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all(Colors.limeAccent)),
+                  onPressed: () {
+                    clearBoard();
+                  },
+                  child: const Text(
+                    "Clear Board",
+                    style: TextStyle(fontSize: 16, color: Colors.black),
+                  ),
+                ),
+              ),
+            ),
+            const Padding(padding: EdgeInsets.all(2.0)),
+            Obx(
+              () => Text(
+                infoText.string,
+                style: const TextStyle(fontSize: 16, color: Colors.blueAccent),
+                textAlign: TextAlign.center,
+              ),
             )
           ],
         ),
       ),
     );
   }
+}
+
+void clearBoard() {
+  cellItemWidgetList.clear();
+  containerList.clear();
+  btnText.value = "Start";
+  infoText.value = "Please click the start button to start the game";
+  globalState.value = GameState.init;
+  lockOtherCells.value = false;
+  isPlayed.value = false;
+  ticTacToeGameWidget = TicTacToeGameWidget();
+  clearState.value = false;
 }
